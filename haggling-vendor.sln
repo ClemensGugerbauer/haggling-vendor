@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "haggling_interfaces", "haggling_interfaces\haggling_interfaces.csproj", "{80F5C4CF-6664-4DF7-1EB2-A1727FF0DE17}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "haggling_vendorLib", "haggling_vendorLib\haggling_vendorLib.csproj", "{219FB52F-01DF-B413-2517-268412580DBD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{80F5C4CF-6664-4DF7-1EB2-A1727FF0DE17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80F5C4CF-6664-4DF7-1EB2-A1727FF0DE17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80F5C4CF-6664-4DF7-1EB2-A1727FF0DE17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80F5C4CF-6664-4DF7-1EB2-A1727FF0DE17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{219FB52F-01DF-B413-2517-268412580DBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{219FB52F-01DF-B413-2517-268412580DBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{219FB52F-01DF-B413-2517-268412580DBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{219FB52F-01DF-B413-2517-268412580DBD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C492F232-302B-4101-9810-0D480862C14F}
+	EndGlobalSection
+EndGlobal
