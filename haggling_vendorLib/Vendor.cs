@@ -10,6 +10,8 @@ public class Vendor : IVendor
     public IProduct[] Products { get; init; }
     public decimal Money { get => _money; }
 
+    private int _offers = 0;
+    private int _maxOffers = 10;
     private List<IOffer> _pastOffers = new List<IOffer>();
     private decimal _money = 0;
     private static readonly IProduct[] _allProducts = [
@@ -47,7 +49,7 @@ public class Vendor : IVendor
     private static IProduct[] GenerateProducts()
     {
         Random rand = new Random();
-        int productCount = rand.Next(3, _allProducts.Length - 1); 
+        int productCount = rand.Next(3, _allProducts.Length - 1);
         IProduct[] products = new IProduct[productCount];
 
         for (int i = 0; i < productCount; i++)
@@ -56,7 +58,7 @@ public class Vendor : IVendor
             do
             {
                 product = _allProducts[rand.Next(_allProducts.Length)];
-            } while (Array.Exists(products, p => p != null && p.Name == product.Name)); 
+            } while (Array.Exists(products, p => p != null && p.Name == product.Name));
 
             products[i] = product;
         }
@@ -82,28 +84,31 @@ public class Vendor : IVendor
 
     public IOffer RespondToOffer(IOffer offer, ICustomer customer)
     {
-        var estPrice = GetEstimatedPrice(offer.Product, customer);
-
-        if (offer.Price < estPrice * 0.1m) // Das einfach bodenlos frech.
+        if (_offers >= _maxOffers)
         {
             offer.Status = OfferStatus.Stopped;
+            // StopTrade(); //TODO ka ob wir das machen müssen oder ob das von außen aufgerufen wird 
+            return offer;
         }
-
-        if (offer.Price == estPrice)
+        else
         {
-            offer.Status = OfferStatus.Accepted;
-        }
+            _offers++;
+            _pastOffers.Add(offer);
+            var estPrice = GetEstimatedPrice(offer.Product, customer);
 
-        // TODO: logik zum bisherige preise speichern fehlt und dann vergleichen wv wer runter gegangen ist.
+            if (offer.Price > estPrice * 2m) { offer.Status = OfferStatus.Accepted; }
+            if (offer.Price < estPrice * 0.5m) { offer.Status = OfferStatus.Stopped; }
 
-
+            
         return offer;
+        }
     }
 
     public void StopTrade()
     {
         this._pastOffers.Clear();
-        
+        this._offers = 0;
+        this._maxOffers = 10;
     }
 
     static private decimal GetEstimatedPrice(IProduct product, ICustomer customer)
