@@ -9,6 +9,7 @@ public class Vendor : IVendor
     public IProduct[] Products { get; init; }
     public decimal Money { get => _money; }
 
+    private List<IProduct> _inventory = new List<IProduct>();
     private int _offers = 0;
     private int _maxOffers = 10;
     private List<IOffer> _pastOffers = new List<IOffer>();
@@ -42,7 +43,7 @@ public class Vendor : IVendor
         Age = age;
 
         Products = GenerateProducts();
-
+        _inventory = Products.ToList();
     }
 
     private static IProduct[] GenerateProducts()
@@ -71,14 +72,41 @@ public class Vendor : IVendor
         {
             _money += offer.Price;
             // Remove the sold product from the vendor's inventory
-            var productList = Products.ToList();
-            productList.Remove(offer.Product);
-            // Products = productList.ToArray();
-            StopTrade();
+
+            int idx = _inventory.FindIndex(p => p.Name == offer.Product.Name);
+
+            if (idx == -1)
+            {
+                throw new InvalidOperationException("Produkt existiert nicht im Inventar.");
+            }
+            else
+            {
+                _inventory.RemoveAt(idx);
+                int remainingAmount = _inventory.Count(p => p.Name == offer.Product.Name);
+                if (remainingAmount > 1)
+                {
+                    foreach (var product in _inventory.Where(p => p.Name == offer.Product.Name))
+                    {
+                        product.Rarity = new Percentage(product.Rarity.Value - 5);
+                    }
+
+                }
+                else if (remainingAmount == 1)
+                {
+                    foreach (var product in _inventory.Where(p => p.Name == offer.Product.Name))
+                    {
+                        product.Rarity = new Percentage(100);
+                    }
+                }
+                else
+                {
+                    StopTrade();
+                }
+            }
         }
-
-
     }
+
+
 
     public IOffer GetStartingOffer(IProduct product, ICustomer customer)
     {
@@ -107,9 +135,9 @@ public class Vendor : IVendor
 
             if (offer.Price > estPrice * 2m) { offer.Status = OfferStatus.Accepted; }
             if (offer.Price < estPrice * 0.5m) { offer.Status = OfferStatus.Stopped; }
-            
-            
-        return offer;
+
+
+            return offer;
         }
     }
 
