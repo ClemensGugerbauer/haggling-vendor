@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace haggling_interfaces;
 
 public class Vendor : IVendor
@@ -68,7 +67,17 @@ public class Vendor : IVendor
 
     public void AcceptTrade(IOffer offer)
     {
-        throw new NotImplementedException(); //TODO: Maybe dann die Rarity von dem Product erhöhen wenns verkauft worden is?
+        if (offer.Status == OfferStatus.Accepted)
+        {
+            _money += offer.Price;
+            // Remove the sold product from the vendor's inventory
+            var productList = Products.ToList();
+            productList.Remove(offer.Product);
+            // Products = productList.ToArray();
+            StopTrade();
+        }
+
+
     }
 
     public IOffer GetStartingOffer(IProduct product, ICustomer customer)
@@ -98,7 +107,7 @@ public class Vendor : IVendor
 
             if (offer.Price > estPrice * 2m) { offer.Status = OfferStatus.Accepted; }
             if (offer.Price < estPrice * 0.5m) { offer.Status = OfferStatus.Stopped; }
-
+            
             
         return offer;
         }
