@@ -137,7 +137,7 @@ public class Vendor : IVendor
         if (_patience.Value == 0)
         {
             offer.Status = OfferStatus.Stopped;
-            // StopTrade(); //TODO ka ob wir das machen müssen oder ob das von außen aufgerufen wird 
+            StopTrade(); 
             return offer;
         }
         else
