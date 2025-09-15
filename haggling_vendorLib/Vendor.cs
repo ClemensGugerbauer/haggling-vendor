@@ -183,3 +183,8 @@ public class Vendor : IVendor
         return estPrice;
     }
 }
+
+public class VendorFactory : IVendorFactory
+{
+    public static IVendor CreateVendor(string name, int age) => new Vendor(name, age);
+}
