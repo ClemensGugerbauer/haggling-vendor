@@ -61,3 +61,8 @@ public interface IVendor
     /// </summary>
     public void StopTrade();
 }
+
+public interface IVendorFactory
+{
+    public static abstract IVendor CreateVendor(string name, int age);
+}
