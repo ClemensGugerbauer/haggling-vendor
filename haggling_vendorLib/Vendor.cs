@@ -53,7 +53,6 @@ public class Vendor : IVendor
 
         Products = GenerateProducts();
         _inventory = Products.ToList();
-
         // "Some vendors are more patient than others" implementation from the pdf
         Random rand = new Random();
         _maxPatience = rand.Next(80, 101);
@@ -65,7 +64,7 @@ public class Vendor : IVendor
         Random rand = new Random();
         int productCount = rand.Next(3, _allProducts.Length - 1);
         IProduct[] products = new IProduct[productCount];
-        
+
         for (int i = 0; i < productCount; i++)
         {
             IProduct product;
@@ -103,7 +102,6 @@ public class Vendor : IVendor
                     {
                         product.Rarity = new Percentage(product.Rarity.Value - 5);
                     }
-
                 }
                 else if (remainingAmount == 1)
                 {
@@ -122,6 +120,17 @@ public class Vendor : IVendor
 
     public IOffer GetStartingOffer(IProduct product, ICustomer customer)
     {
+        if (!_inventory.Any(p => p.Name == product.Name))
+        {
+            return new VendorOffer()
+            {
+                Status = OfferStatus.Stopped,
+                Product = product,
+                Price = 0,
+                OfferedBy = PersonType.Vendor
+            };
+        }
+
         return new VendorOffer()
         {
             Status = OfferStatus.Ongoing,
@@ -136,13 +145,13 @@ public class Vendor : IVendor
         decimal customerPrice = offer.Price;
         decimal estPrice = GetEstimatedPrice(offer.Product, customer);
         int idx = _inventory.FindIndex(p => p.Name == offer.Product.Name);
-        
+
         offer.OfferedBy = PersonType.Vendor;
-        
+
         if (_patience.Value == 0 || idx == -1)
         {
             offer.Status = OfferStatus.Stopped;
-            StopTrade(); 
+            StopTrade();
             _pastOffers.Add(offer);
             return offer;
         }
@@ -175,10 +184,10 @@ public class Vendor : IVendor
                 counterPrice = lastVendorPrice;
             }
         }
-        
+
         offer.Price = decimal.Round(counterPrice, 2, MidpointRounding.AwayFromZero);
         offer.Status = OfferStatus.Ongoing;
-        
+
         _patience.Value -= _patienceDecreaseOnOffer;
         if (customerPrice < estPrice * 0.5m)
         {
