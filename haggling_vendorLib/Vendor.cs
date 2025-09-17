@@ -15,6 +15,9 @@ public class Vendor : IVendor
     public IProduct[] Products { get; init; }
     public decimal Money { get => _money; }
 
+    // for determining if the Customer increased their price (compared to the last trade)
+    private decimal _lastCustomerPrice = 0;
+
     private List<IProduct> _inventory = new List<IProduct>();
     private int _maxPatience;
     private const int _patienceDecreaseOnOffer = 5;             // Decrease patience by this amount on every offer made by the customer
@@ -142,6 +145,10 @@ public class Vendor : IVendor
 
     public IOffer RespondToOffer(IOffer offer, ICustomer customer)
     {
+        // Check if the customer increased their offer compared to the last one
+        bool customerIncreased = offer.Price > _lastCustomerPrice;
+        _lastCustomerPrice = offer.Price;
+
         decimal customerPrice = offer.Price;
         decimal estPrice = GetEstimatedPrice(offer.Product, customer);
         int idx = _inventory.FindIndex(p => p.Name == offer.Product.Name);
@@ -151,8 +158,8 @@ public class Vendor : IVendor
         if (_patience.Value == 0 || idx == -1)
         {
             offer.Status = OfferStatus.Stopped;
-            StopTrade();
             _pastOffers.Add(offer);
+            StopTrade();
             return offer;
         }
         if (customerPrice > estPrice * 1.3m)
@@ -160,6 +167,7 @@ public class Vendor : IVendor
             offer.Status = OfferStatus.Accepted;
             _patience.Value -= _patienceDecreaseOnOffer;
             _pastOffers.Add(offer);
+            StopTrade();
             return offer;
         }
 
@@ -174,13 +182,19 @@ public class Vendor : IVendor
             var lastVendorOffer = _pastOffers[^1];
             decimal lastVendorPrice = lastVendorOffer.Price;
 
-            if (customerPrice > lastVendorPrice && lastVendorPrice > 0m)
+            if (customerIncreased)
             {
                 decimal pIncrease = (customerPrice - lastVendorPrice) / lastVendorPrice; // 0.10 = 10%
                 counterPrice = lastVendorPrice * (1m - pIncrease);
             }
             else
-            {   // Wenn customer offer kleiner / gleich -> wir bleiben gleich
+            {   //if the customer is not ready to go any higher, we dont need to go any lower
+                offer.Status = OfferStatus.Stopped;
+                _pastOffers.Add(offer);
+                StopTrade();
+                return offer;
+
+                // Wenn customer offer kleiner / gleich -> wir bleiben gleich (gonna keep this here in case shit breaks)
                 counterPrice = lastVendorPrice;
             }
         }
@@ -191,8 +205,8 @@ public class Vendor : IVendor
         {
             offer.Status = OfferStatus.Accepted;
             _patience.Value -= _patienceDecreaseOnOffer;
-            StopTrade();
             _pastOffers.Add(offer);
+            StopTrade();
             return offer;
         }
         offer.Status = OfferStatus.Ongoing;
@@ -215,6 +229,7 @@ public class Vendor : IVendor
     {
         this._pastOffers.Clear();
         this._patience.Value = this._maxPatience;
+        this._lastCustomerPrice = 0;
     }
 
     static private decimal GetEstimatedPrice(IProduct product, ICustomer customer)
