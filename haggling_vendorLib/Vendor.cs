@@ -32,7 +32,6 @@ public class Vendor : IVendor
         new VendorProduct("Kommode", ProductType.Furniture, 100),
         new VendorProduct("David's Lichtschwert", ProductType.Toys, 45),
         new VendorProduct("c# buch", ProductType.Books, 100),
-        new VendorProduct("Hammer", ProductType.Tools, 10),
         new VendorProduct("Werkzeugkasten", ProductType.Tools, 11),
         new VendorProduct("Sportshirt", ProductType.SportsEquipment, 1),
         new VendorProduct("Hantel", ProductType.SportsEquipment, 5),
