@@ -186,6 +186,15 @@ public class Vendor : IVendor
         }
 
         offer.Price = decimal.Round(counterPrice, 2, MidpointRounding.AwayFromZero);
+        // Accept if counter-offer matches customer offer
+        if (offer.Price == customerPrice)
+        {
+            offer.Status = OfferStatus.Accepted;
+            _patience.Value -= _patienceDecreaseOnOffer;
+            StopTrade();
+            _pastOffers.Add(offer);
+            return offer;
+        }
         offer.Status = OfferStatus.Ongoing;
 
         _patience.Value -= _patienceDecreaseOnOffer;
