@@ -26,25 +26,25 @@ public class Vendor : IVendor
     private static readonly IProduct[] _allProducts = [
         new VendorProduct("Apfel", ProductType.Food, 2),
         new VendorProduct("Mango", ProductType.Food, 3),
-        new VendorProduct("Haslinger's Laptop", ProductType.Electronics, 100),
-        new VendorProduct("Henry's Unterhose 67", ProductType.Clothing, 1),
+        new VendorProduct("Lenovo Laptop", ProductType.Electronics, 100),
+        new VendorProduct("Nike Socken", ProductType.Clothing, 1),
         new VendorProduct("Couch", ProductType.Furniture, 23),
-        new VendorProduct("Haslinger's 1:1 Memorial", ProductType.Furniture, 100),
+        new VendorProduct("Kommode", ProductType.Furniture, 100),
         new VendorProduct("David's Lichtschwert", ProductType.Toys, 45),
-        new VendorProduct("\"Wie man fliegt\" by Horvath Jr.", ProductType.Books, 100),
+        new VendorProduct("c# buch", ProductType.Books, 100),
         new VendorProduct("Hammer", ProductType.Tools, 10),
         new VendorProduct("Werkzeugkasten", ProductType.Tools, 11),
-        new VendorProduct("Henry's Sportleiberl", ProductType.SportsEquipment, 1),
-        new VendorProduct("Andre's 67 cm Dildo", ProductType.SportsEquipment, 5),
-        new VendorProduct("Haslingers IPod Pro 2005 Edition ", ProductType.Electronics, 35),
-        new VendorProduct("Free Benko T-Shirt", ProductType.Clothing, 2),
+        new VendorProduct("Sportshirt", ProductType.SportsEquipment, 1),
+        new VendorProduct("Hantel", ProductType.SportsEquipment, 5),
+        new VendorProduct("IPhone 17", ProductType.Electronics, 35),
+        new VendorProduct("Gucci T-Shirt", ProductType.Clothing, 2),
         new VendorProduct("Tisch", ProductType.Furniture, 40),
         new VendorProduct("Spiderman Life Action Figure", ProductType.Toys, 15),
         new VendorProduct("GTA 6", ProductType.Electronics, 12),
         new VendorProduct("Hammer", ProductType.Tools, 25),
-        new VendorProduct("Fußball mit dem JFK erschossen wurde", ProductType.SportsEquipment, 8),
-        new VendorProduct("Apfel Watch 67", ProductType.Electronics, 20),
-        new VendorProduct("Mexikaser T-Shirt", ProductType.Clothing, 5)
+        new VendorProduct("Fußball ", ProductType.SportsEquipment, 8),
+        new VendorProduct("Apple Watch 10", ProductType.Electronics, 20),
+        new VendorProduct("Louis Vuitton T-Shirt", ProductType.Clothing, 5)
     ];
 
     public Vendor(string name, int age)
