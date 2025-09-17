@@ -134,31 +134,64 @@ public class Vendor : IVendor
 
     public IOffer RespondToOffer(IOffer offer, ICustomer customer)
     {
-        if (_patience.Value == 0)
+        decimal customerPrice = offer.Price;
+        decimal estPrice = GetEstimatedPrice(offer.Product, customer);
+        int idx = _inventory.FindIndex(p => p.Name == offer.Product.Name);
+        
+        offer.OfferedBy = PersonType.Vendor;
+        
+        if (_patience.Value == 0 || idx == -1)
         {
             offer.Status = OfferStatus.Stopped;
             StopTrade(); 
+            _pastOffers.Add(offer);
             return offer;
+        }
+        if (customerPrice > estPrice * 1.3m)
+        {
+            offer.Status = OfferStatus.Accepted;
+            _patience.Value -= _patienceDecreaseOnOffer;
+            _pastOffers.Add(offer);
+            return offer;
+        }
+
+        decimal counterPrice;
+
+        if (_pastOffers.Count == 0)
+        {
+            counterPrice = estPrice * 0.8m + customerPrice * 0.2m;
         }
         else
         {
-            _pastOffers.Add(offer);
-            var estPrice = GetEstimatedPrice(offer.Product, customer);
+            var lastVendorOffer = _pastOffers[^1];
+            decimal lastVendorPrice = lastVendorOffer.Price;
 
-            if (offer.Price > estPrice * 1.3m) { offer.Status = OfferStatus.Accepted; }
-
-            _patience.Value -= _patienceDecreaseOnOffer;
-            if (offer.Price < estPrice * 0.5m)
+            if (customerPrice > lastVendorPrice && lastVendorPrice > 0m)
             {
-                _patience.Value -= _patienceDecreaseOnBigUndershoot;
+                decimal pIncrease = (customerPrice - lastVendorPrice) / lastVendorPrice; // 0.10 = 10%
+                counterPrice = lastVendorPrice * (1m - pIncrease);
             }
-            else if (offer.Price < estPrice * 0.8m)
-            {
-                _patience.Value -= _patienceDecreaseOnUndershoot;
+            else
+            {   // Wenn customer offer kleiner / gleich -> wir bleiben gleich
+                counterPrice = lastVendorPrice;
             }
-
-            return offer;
         }
+        
+        offer.Price = decimal.Round(counterPrice, 2, MidpointRounding.AwayFromZero);
+        offer.Status = OfferStatus.Ongoing;
+        
+        _patience.Value -= _patienceDecreaseOnOffer;
+        if (customerPrice < estPrice * 0.5m)
+        {
+            _patience.Value -= _patienceDecreaseOnBigUndershoot;
+        }
+        else if (customerPrice < estPrice * 0.8m)
+        {
+            _patience.Value -= _patienceDecreaseOnUndershoot;
+        }
+        _pastOffers.Add(offer);
+
+        return offer;
     }
 
     public void StopTrade()
