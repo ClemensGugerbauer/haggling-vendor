@@ -17,19 +17,19 @@ public class Vendor : IVendor
     public IProduct[] Products
     {
         get => _inventory.Where(p => p != null).ToArray();
-        init => _inventory = value.ToList();
+        init => _inventory = [.. value];
     }
 
     // for determining if the Customer increased their price (compared to the last trade)
     private decimal _lastCustomerPrice = 0;
 
-    private List<IProduct> _inventory = new List<IProduct>();
+    private List<IProduct> _inventory = [];
     private int _maxPatience;
     private const int _patienceDecreaseOnOffer = 5;             // Decrease patience by this amount on every offer made by the customer
     private const int _patienceDecreaseOnUndershoot = 10;       // Undershoot means that the customer offered to few funds in the offer
     private const int _patienceDecreaseOnBigUndershoot = 25;    // BigUndershoot means that the customer offered way to few funds in the offer
 
-    private List<IOffer> _pastOffers = new List<IOffer>();
+    private List<IOffer> _pastOffers = [];
     private decimal _money = 0;
     private static readonly IProduct[] _allProducts = [
         new VendorProduct("Apfel", ProductType.Food, 2),
@@ -61,16 +61,15 @@ public class Vendor : IVendor
 
         Products = GenerateProducts();
         //_inventory = Products.ToList(); THEOREDICLY not neccesary
-
         // "Some vendors are more patient than others" implementation from the pdf
-        Random rand = new Random();
+        Random rand = new();
         _maxPatience = rand.Next(80, 101);
         _patience = new Percentage(_maxPatience);
     }
 
     private static IProduct[] GenerateProducts()
     {
-        Random rand = new Random();
+        Random rand = new();
         int productCount = rand.Next(3, _allProducts.Length - 1);
         IProduct[] products = new IProduct[productCount];
 
@@ -153,10 +152,13 @@ public class Vendor : IVendor
     public IOffer RespondToOffer(IOffer offer, ICustomer customer)
     {
         // Check if the customer increased their offer compared to the last one
-        bool customerIncreased = offer.Price > _lastCustomerPrice;
+        // Capture the previous customer price before updating so percentage
+        // calculations use the customer's change, not the vendor's last price.
+        decimal prevCustomerPrice = _lastCustomerPrice;
+        bool customerIncreased = offer.Price > prevCustomerPrice;
         _lastCustomerPrice = offer.Price;
 
-        decimal newPrice = offer.Price;
+        decimal customerPrice = offer.Price;
         decimal estPrice = GetEstimatedPrice(offer.Product, customer);
         int idx = _inventory.FindIndex(p => p.Name == offer.Product.Name);
 
@@ -169,7 +171,7 @@ public class Vendor : IVendor
             StopTrade();
             return offer;
         }
-        if (newPrice > estPrice * 1.3m)
+        if (customerPrice > estPrice * 1.3m)
         {
             offer.Status = OfferStatus.Accepted;
             _patience.Value -= _patienceDecreaseOnOffer;
@@ -182,7 +184,7 @@ public class Vendor : IVendor
 
         if (_pastOffers.Count == 0)
         {
-            counterPrice = estPrice * 0.8m + newPrice * 0.2m;
+            counterPrice = estPrice * 0.8m + customerPrice * 0.2m;
         }
         else
         {
@@ -191,8 +193,12 @@ public class Vendor : IVendor
 
             if (customerIncreased)
             {
-                decimal pDecrease = Math.Abs((newPrice - lastVendorPrice) / lastVendorPrice); // 0.10 = 10%
-                counterPrice = lastVendorPrice * (1m + pDecrease);
+                // Compute percent increase of the customer's offer relative to
+                // their previous offer. Using the vendor's last price here caused
+                // inverted behavior when the customer increased but was still
+                // below the vendor's last asking price.
+                decimal pIncrease = prevCustomerPrice == 0 ? 0 : (customerPrice - prevCustomerPrice) / prevCustomerPrice; // 0.10 = 10%
+                counterPrice = lastVendorPrice * (1m - pIncrease);
             }
             else
             {   //if the customer is not ready to go any higher, we dont need to go any lower
@@ -205,7 +211,7 @@ public class Vendor : IVendor
 
         offer.Price = decimal.Round(counterPrice, 2, MidpointRounding.AwayFromZero);
         // Accept if counter-offer matches customer offer
-        if (offer.Price == newPrice)
+        if (offer.Price == customerPrice)
         {
             offer.Status = OfferStatus.Accepted;
             _patience.Value -= _patienceDecreaseOnOffer;
@@ -216,11 +222,11 @@ public class Vendor : IVendor
         offer.Status = OfferStatus.Ongoing;
 
         _patience.Value -= _patienceDecreaseOnOffer;
-        if (newPrice < estPrice * 0.5m)
+        if (customerPrice < estPrice * 0.5m)
         {
             _patience.Value -= _patienceDecreaseOnBigUndershoot;
         }
-        else if (newPrice < estPrice * 0.8m)
+        else if (customerPrice < estPrice * 0.8m)
         {
             _patience.Value -= _patienceDecreaseOnUndershoot;
         }
