@@ -98,6 +98,9 @@ public class Vendor : IVendor
             else
             {
                 _inventory.RemoveAt(idx);
+                // placing a pipebomb
+                Products[idx] = null!;
+
                 int remainingAmount = _inventory.Count(p => p.Name == offer.Product.Name);
                 if (remainingAmount > 1)
                 {
