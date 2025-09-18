@@ -61,6 +61,7 @@ public class Vendor : IVendor
 
         Products = GenerateProducts();
         //_inventory = Products.ToList(); THEOREDICLY not neccesary
+
         // "Some vendors are more patient than others" implementation from the pdf
         Random rand = new Random();
         _maxPatience = rand.Next(80, 101);
@@ -155,7 +156,7 @@ public class Vendor : IVendor
         bool customerIncreased = offer.Price > _lastCustomerPrice;
         _lastCustomerPrice = offer.Price;
 
-        decimal customerPrice = offer.Price;
+        decimal newPrice = offer.Price;
         decimal estPrice = GetEstimatedPrice(offer.Product, customer);
         int idx = _inventory.FindIndex(p => p.Name == offer.Product.Name);
 
@@ -168,7 +169,7 @@ public class Vendor : IVendor
             StopTrade();
             return offer;
         }
-        if (customerPrice > estPrice * 1.3m)
+        if (newPrice > estPrice * 1.3m)
         {
             offer.Status = OfferStatus.Accepted;
             _patience.Value -= _patienceDecreaseOnOffer;
@@ -181,7 +182,7 @@ public class Vendor : IVendor
 
         if (_pastOffers.Count == 0)
         {
-            counterPrice = estPrice * 0.8m + customerPrice * 0.2m;
+            counterPrice = estPrice * 0.8m + newPrice * 0.2m;
         }
         else
         {
@@ -190,8 +191,8 @@ public class Vendor : IVendor
 
             if (customerIncreased)
             {
-                decimal pIncrease = (customerPrice - lastVendorPrice) / lastVendorPrice; // 0.10 = 10%
-                counterPrice = lastVendorPrice * (1m - pIncrease);
+                decimal pDecrease = Math.Abs((newPrice - lastVendorPrice) / lastVendorPrice); // 0.10 = 10%
+                counterPrice = lastVendorPrice * (1m + pDecrease);
             }
             else
             {   //if the customer is not ready to go any higher, we dont need to go any lower
@@ -204,7 +205,7 @@ public class Vendor : IVendor
 
         offer.Price = decimal.Round(counterPrice, 2, MidpointRounding.AwayFromZero);
         // Accept if counter-offer matches customer offer
-        if (offer.Price == customerPrice)
+        if (offer.Price == newPrice)
         {
             offer.Status = OfferStatus.Accepted;
             _patience.Value -= _patienceDecreaseOnOffer;
@@ -215,11 +216,11 @@ public class Vendor : IVendor
         offer.Status = OfferStatus.Ongoing;
 
         _patience.Value -= _patienceDecreaseOnOffer;
-        if (customerPrice < estPrice * 0.5m)
+        if (newPrice < estPrice * 0.5m)
         {
             _patience.Value -= _patienceDecreaseOnBigUndershoot;
         }
-        else if (customerPrice < estPrice * 0.8m)
+        else if (newPrice < estPrice * 0.8m)
         {
             _patience.Value -= _patienceDecreaseOnUndershoot;
         }
