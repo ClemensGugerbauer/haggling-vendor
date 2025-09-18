@@ -12,8 +12,13 @@ public class Vendor : IVendor
         get => _patience;
         set => _patience = value;
     }
-    public IProduct[] Products { get; init; }
+
     public decimal Money { get => _money; }
+    public IProduct[] Products
+    {
+        get => _inventory.Where(p => p != null).ToArray();
+        init => _inventory = value.ToList();
+    }
 
     // for determining if the Customer increased their price (compared to the last trade)
     private decimal _lastCustomerPrice = 0;
@@ -55,7 +60,7 @@ public class Vendor : IVendor
         Age = age;
 
         Products = GenerateProducts();
-        _inventory = Products.ToList();
+        //_inventory = Products.ToList(); THEOREDICLY not neccesary
         // "Some vendors are more patient than others" implementation from the pdf
         Random rand = new Random();
         _maxPatience = rand.Next(80, 101);
@@ -98,8 +103,6 @@ public class Vendor : IVendor
             else
             {
                 _inventory.RemoveAt(idx);
-                // placing a pipebomb
-                Products[idx] = null!;
 
                 int remainingAmount = _inventory.Count(p => p.Name == offer.Product.Name);
                 if (remainingAmount > 1)
@@ -196,9 +199,6 @@ public class Vendor : IVendor
                 _pastOffers.Add(offer);
                 StopTrade();
                 return offer;
-
-                // Wenn customer offer kleiner / gleich -> wir bleiben gleich (gonna keep this here in case shit breaks)
-                counterPrice = lastVendorPrice;
             }
         }
 
